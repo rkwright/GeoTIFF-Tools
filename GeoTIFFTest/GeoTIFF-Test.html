@@ -30,7 +30,7 @@
         <script src="../geotiff.js/dist/geotiff.browserify.js"></script>
 	</head>
 	<body style="margin:0;padding:0;border:0">
-    <div id="geoTable">Wowser</div>
+    <div id="geoTable"></div>
 
     <script type="text/javascript">
 
@@ -56,36 +56,39 @@
             var geoTable = "<table>\n";
             geoTable    += "<tr>\n";
             geoTable    += "<th style='text-align: right;'>Name</th>\n";
-            geoTable    += "<th style='text-align: left;'>Value</th></tr>\n";
+            geoTable    += "<th style='text-align: left;'>Value</th>\n";
             geoTable    += "</tr>\n";
 
             for (var propertyName in ifd) {
                 if (ifd.hasOwnProperty(propertyName)) {
-                    geoTable += "<tr>\n";
 
                     var value = ifd[propertyName];
                     console.log("prop: " + propertyName + " value: " + value);
 
-                    geoTable += "<td style='text-align: right;'>" + propertyName + "</td>\n";
                     if (propertyName.indexOf("GDAL_METADATA") !== -1) {
-                        parseGDAL(value);
+                        geoTable += newRow( propertyName, "", "#EEEEEE" );
+                        geoTable += parseGDAL( value );
                     }
-                    else {
-                        geoTable += "<td style='text-align: left;'>" + value + "</td></tr>\n";
-                    }
-
-                    geoTable += "</tr>\n";
+                    else
+                        geoTable += newRow(propertyName, value, "white");
                 }
             }
 
-            geoTable+="</table>";
+            geoTable += "</table>";
 
             document.getElementById('geoTable').innerHTML = geoTable;
-            //document.body.appendChild( geoTable );
-
+            
+            // weird hack.  See https://stackoverflow.com/questions/27503696/\
+            // when-creating-a-table-inside-a-div-text-undefined-shows-up-for-no-reason
+            document.getElementById('geoTable').childNodes[0].nodeValue = null;
         }
 
+        /**
+         * Parse the GDAL info, which is in XML
+         * @param gdal
+         */
         function parseGDAL( gdal ) {
+            var gdalRows;
             var parser = new DOMParser();
             var xmlDoc = parser.parseFromString(gdal,"text/xml");
 
@@ -93,22 +96,31 @@
             var value, name;
 
             var i = 0;
-            if (nodes[0].nodeName === "parsererror")
-                i++;
-
             while ( i < nodes.length ) {
-                var n = nodes[i];
+                var n = nodes[i++];
 
-                if (n.nodeType === Node.ELEMENT_NODE) {
+                if ( n.nodeType === Node.ELEMENT_NODE && n.nodeName !== "parsererror" ) {
                     name  = n.getAttribute("name");
                     value = n.childNodes[0].nodeValue;
+
+                    gdalRows += newRow( name, value, "#EEEEEE" );
+
                     console.log(name + ": " + value);
                 }
-
-                i++;
             }
+
+            return gdalRows;
         }
 
+        function newRow( name, value, bgColor ) {
+
+            var row = "<tr>\n";
+            row += "<td style='text-align:right; background-color: " + bgColor + ";  '>" + name + "</td>\n";
+            row += "<td style='text-align:left; background-color: " + bgColor + "; '>" + value + "</td>\n";
+            row += "</tr>\n";
+
+            return row;
+        }
         xhr.send()
     </script>
 
