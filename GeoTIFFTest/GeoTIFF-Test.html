@@ -25,6 +25,7 @@
             }
             th {
                 font-weight: bold;
+                background-color:#EEEEEE;
             }
         </style>
         <script src="../geotiff.js/dist/geotiff.browserify.js"></script>
@@ -55,8 +56,8 @@
 
             var geoTable = "<table>\n";
             geoTable    += "<tr>\n";
-            geoTable    += "<th style='text-align: right;'>Name</th>\n";
-            geoTable    += "<th style='text-align: left;'>Value</th>\n";
+            geoTable    += "<th style='text-align:right;'>Name</th>\n";
+            geoTable    += "<th style='text-align:left;'>Value</th>\n";
             geoTable    += "</tr>\n";
 
             for (var propertyName in ifd) {
@@ -66,7 +67,7 @@
                     console.log("prop: " + propertyName + " value: " + value);
 
                     if (propertyName.indexOf("GDAL_METADATA") !== -1) {
-                        geoTable += newRow( propertyName, "", "#EEEEEE" );
+                        geoTable += newRow( propertyName, "", "#F7F7F7" );
                         geoTable += parseGDAL( value );
                     }
                     else
@@ -77,7 +78,7 @@
             geoTable += "</table>";
 
             document.getElementById('geoTable').innerHTML = geoTable;
-            
+
             // weird hack.  See https://stackoverflow.com/questions/27503696/\
             // when-creating-a-table-inside-a-div-text-undefined-shows-up-for-no-reason
             document.getElementById('geoTable').childNodes[0].nodeValue = null;
@@ -103,7 +104,7 @@
                     name  = n.getAttribute("name");
                     value = n.childNodes[0].nodeValue;
 
-                    gdalRows += newRow( name, value, "#EEEEEE" );
+                    gdalRows += newRow( name, value, "#F7F7F7" );
 
                     console.log(name + ": " + value);
                 }
