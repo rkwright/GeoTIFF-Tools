@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<!--
+  			@author: rkwright@geofx.com
+		-->
+		<title>GeoTIFF Test</title>
+		<meta charset="UTF-8"/>
+
+		<!-- Set the viewport size to the screen size, so it will be displayed maximized, but unscaled. -->
+		<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1"/>
+
+        <script src="../geotiff.js/dist/geotiff.browserify.js"></script>
+	</head>
+	<body style="margin:0;padding:0;border:0">
+
+    <script type="text/javascript">
+
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', "../data/ETOPO_100.tif", true);
+        xhr.responseType = 'arraybuffer';
+        xhr.onload = function(e) {
+            var tiff = GeoTIFF.parse(this.response);
+
+            var n = tiff.getImageCount();
+
+            var image = tiff.getImage();
+
+            var ifd = image.getFileDirectory();dumpIFD( ifd );
+
+            var geoKeys = image.getGeoKeys();
+
+            var rasters = image.readRasters();
+        };
+
+        function dumpIFD( ifd ) {
+            for (var propertyName in ifd) {
+                if (ifd.hasOwnProperty(propertyName)) {
+
+                    var value = ifd[propertyName];
+                    var own = ifd.hasOwnProperty(propertyName);
+                    console.log("prop: " + propertyName + " value: " + value);
+
+                    if (propertyName.indexOf("GDAL_METADATA") !== -1) {
+                        parseGDAL(value);
+                    }
+                }
+            }
+        }
+
+        function parseGDAL( gdal ) {
+            var parser = new DOMParser();
+            var xmlDoc = parser.parseFromString(gdal,"text/xml");
+
+            var nodes = xmlDoc.documentElement.childNodes;
+            var value, name;
+
+            var i = 0;
+            if (nodes[0].nodeName === "parsererror")
+                i++;
+
+            while ( i < nodes.length ) {
+                var n = nodes[i];
+
+                if (n.nodeType === Node.ELEMENT_NODE) {
+                    name  = n.getAttribute("name");
+                    value = n.childNodes[0].nodeValue;
+                    console.log(name + ": " + value);
+                }
+
+                i++;
+            }
+        }
+
+        xhr.send()
+    </script>
+
+	</body>
+</html>
