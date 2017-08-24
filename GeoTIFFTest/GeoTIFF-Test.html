@@ -9,10 +9,28 @@
 
 		<!-- Set the viewport size to the screen size, so it will be displayed maximized, but unscaled. -->
 		<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1"/>
+        <style>
+            body {
+                font-family: Verdana,sans-serif;
+            }
 
+            table, th, td {
+                border: 1px solid black;
+                width: 100px;
+                border-spacing:0;
+            }
+
+            th, td {
+                padding: 15px;
+            }
+            th {
+                font-weight: bold;
+            }
+        </style>
         <script src="../geotiff.js/dist/geotiff.browserify.js"></script>
 	</head>
 	<body style="margin:0;padding:0;border:0">
+    <div id="geoTable">Wowser</div>
 
     <script type="text/javascript">
 
@@ -34,18 +52,37 @@
         };
 
         function dumpIFD( ifd ) {
+
+            var geoTable = "<table>\n";
+            geoTable    += "<tr>\n";
+            geoTable    += "<th style='text-align: right;'>Name</th>\n";
+            geoTable    += "<th style='text-align: left;'>Value</th></tr>\n";
+            geoTable    += "</tr>\n";
+
             for (var propertyName in ifd) {
                 if (ifd.hasOwnProperty(propertyName)) {
+                    geoTable += "<tr>\n";
 
                     var value = ifd[propertyName];
-                    var own = ifd.hasOwnProperty(propertyName);
                     console.log("prop: " + propertyName + " value: " + value);
 
+                    geoTable += "<td style='text-align: right;'>" + propertyName + "</td>\n";
                     if (propertyName.indexOf("GDAL_METADATA") !== -1) {
                         parseGDAL(value);
                     }
+                    else {
+                        geoTable += "<td style='text-align: left;'>" + value + "</td></tr>\n";
+                    }
+
+                    geoTable += "</tr>\n";
                 }
             }
+
+            geoTable+="</table>";
+
+            document.getElementById('geoTable').innerHTML = geoTable;
+            //document.body.appendChild( geoTable );
+
         }
 
         function parseGDAL( gdal ) {
