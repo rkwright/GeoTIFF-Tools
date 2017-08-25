@@ -1,129 +1,31 @@
 <!DOCTYPE html>
 <html>
-	<head>
-		<!--
-  			@author: rkwright@geofx.com
-		-->
-		<title>GeoTIFF Test</title>
-		<meta charset="UTF-8"/>
-
-		<!-- Set the viewport size to the screen size, so it will be displayed maximized, but unscaled. -->
-		<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1"/>
-        <style>
-            body {
-                font-family: Verdana,sans-serif;
-            }
-
-            table, th, td {
-                border: 1px solid black;
-                width: 100px;
-                border-spacing:0;
-            }
-
-            th, td {
-                padding: 15px;
-            }
-            th {
-                font-weight: bold;
-                background-color:#EEEEEE;
-            }
-        </style>
-        <script src="../geotiff.js/dist/geotiff.browserify.js"></script>
-	</head>
-	<body style="margin:0;padding:0;border:0">
+<head>
+    <!-- @author: rkwright@geofx.com -->
+    <title>GeoTIFF Test</title>
+    <meta charset="UTF-8"/>
+    <!-- Set the viewport size to the screen size, so it will be displayed maximized, but unscaled. -->
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1"/>
+    <<link rel="stylesheet" type="text/css" href="TIFFTest.css" />>
+    <script src="../geotiff.js/dist/geotiff.browserify.js"></script>
+    <script src="TIFFReader.js"></script>
+</head>
+<body style="margin:0;padding:0;border:0">
     <div id="geoTable"></div>
 
     <script type="text/javascript">
 
-        var xhr = new XMLHttpRequest();
-        xhr.open('GET', "../data/ETOPO_100.tif", true);
-        xhr.responseType = 'arraybuffer';
-        xhr.onload = function(e) {
-            var tiff = GeoTIFF.parse(this.response);
-
-            var n = tiff.getImageCount();
-
-            var image = tiff.getImage();
-
-            var ifd = image.getFileDirectory();dumpIFD( ifd );
-
-            var geoKeys = image.getGeoKeys();
-
-            var rasters = image.readRasters();
-        };
-
-        function dumpIFD( ifd ) {
-
-            var geoTable = "<table>\n";
-            geoTable    += "<tr>\n";
-            geoTable    += "<th style='text-align:right;'>Name</th>\n";
-            geoTable    += "<th style='text-align:left;'>Value</th>\n";
-            geoTable    += "</tr>\n";
-
-            for (var propertyName in ifd) {
-                if (ifd.hasOwnProperty(propertyName)) {
-
-                    var value = ifd[propertyName];
-                    console.log("prop: " + propertyName + " value: " + value);
-
-                    if (propertyName.indexOf("GDAL_METADATA") !== -1) {
-                        geoTable += newRow( propertyName, "", "#F7F7F7" );
-                        geoTable += parseGDAL( value );
-                    }
-                    else
-                        geoTable += newRow(propertyName, value, "white");
-                }
-            }
-
-            geoTable += "</table>";
-
-            document.getElementById('geoTable').innerHTML = geoTable;
-
-            // weird hack.  See https://stackoverflow.com/questions/27503696/\
-            // when-creating-a-table-inside-a-div-text-undefined-shows-up-for-no-reason
-            document.getElementById('geoTable').childNodes[0].nodeValue = null;
-        }
+        var tiffReader = new TIFFX.TIFFReader( "../data/ETOPO_100.tif", tiffReady );
 
         /**
-         * Parse the GDAL info, which is in XML
-         * @param gdal
+         * Called when the TIFF is loaded and ready to be used
          */
-        function parseGDAL( gdal ) {
-            var gdalRows;
-            var parser = new DOMParser();
-            var xmlDoc = parser.parseFromString(gdal,"text/xml");
+        function tiffReady() {
+            console.log("TIFF is ready");
 
-            var nodes = xmlDoc.documentElement.childNodes;
-            var value, name;
-
-            var i = 0;
-            while ( i < nodes.length ) {
-                var n = nodes[i++];
-
-                if ( n.nodeType === Node.ELEMENT_NODE && n.nodeName !== "parsererror" ) {
-                    name  = n.getAttribute("name");
-                    value = n.childNodes[0].nodeValue;
-
-                    gdalRows += newRow( name, value, "#F7F7F7" );
-
-                    console.log(name + ": " + value);
-                }
-            }
-
-            return gdalRows;
+            tiffReader.dumpIFD(document.getElementById("geoTable"));
         }
-
-        function newRow( name, value, bgColor ) {
-
-            var row = "<tr>\n";
-            row += "<td style='text-align:right; background-color: " + bgColor + ";  '>" + name + "</td>\n";
-            row += "<td style='text-align:left; background-color: " + bgColor + "; '>" + value + "</td>\n";
-            row += "</tr>\n";
-
-            return row;
-        }
-        xhr.send()
     </script>
 
-	</body>
+</body>
 </html>
