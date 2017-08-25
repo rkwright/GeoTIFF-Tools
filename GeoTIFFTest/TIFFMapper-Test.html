@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- @author: rkwright@geofx.com -->
+    <title>GeoTIFF Test</title>
+    <meta charset="UTF-8"/>
+    <!-- Set the viewport size to the screen size, so it will be displayed maximized, but unscaled. -->
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1"/>
+    <<link rel="stylesheet" type="text/css" href="TIFFTest.css" />>
+    <script src="../geotiff.js/dist/geotiff.browserify.js"></script>
+    <script src="../three-js/three.js" type="text/javascript"></script>
+    <script src="../three-js/Detector.js" type="text/javascript"></script>
+    <script src="../three-js/stats.js" type="text/javascript"></script>
+    <script src="../gfx/OrbitControls-Touch-Ortho.js" type="text/javascript"></script>
+    <script src="../gfx/gfx-scene.js" type="text/javascript"></script>
+    <script src="TIFFReader.js"></script>
+    <script src="TIFFMapper.js"></script>
+</head>
+<body style="margin:0;padding:0;border:0">
+    <div id="geoTable"></div>
+
+    <script type="text/javascript">
+        var  tiffReader;
+        var  tiffMapper;
+
+        // allocate the Scene object, request orbitControls, some of 3D axes 10 units high and the stats
+        var gfxScene = new GFX.Scene( {
+            cameraPos : [5, 5, 10],
+            axesHeight:10,
+            controls:true,
+            displayStats:true});
+
+        // then initialize our demo's stuff
+        initializeDemo();
+
+        // Animate the scene
+        animateScene();
+
+        /**
+         * Initialize the Demo.
+         */
+
+        function initializeDemo() {
+
+            tiffReader = new TIFFX.TIFFReader("../data/ETOPO_100.tif", tiffReady);
+        }
+
+            /**
+         * Called when the TIFF is loaded and ready to be used
+         */
+        function tiffReady() {
+            console.log("TIFF is ready");
+
+            //tiffReader.dumpIFD(document.getElementById("geoTable"));
+
+            tiffMapper = new TIFFX.TIFFMapper( gfxScene, tiffReader );
+        }
+
+        /**
+         * Animate the scene and call rendering.
+         */
+        function animateScene() {
+
+            // Tell the browser to call this function when page is visible
+            requestAnimationFrame(animateScene);
+
+            // Map the 3D scene down to the 2D screen (render the frame)
+            gfxScene.renderScene();
+        }
+    </script>
+
+</body>
+</html>
