@@ -16,7 +16,7 @@
  */
 TIFFX.TIFFMapper = function ( scene, reader ) {
 
-    this.scene = reader;
+    this.scene  = scene;
     this.reader = reader;
 
     this.createMesh();
@@ -64,7 +64,7 @@ TIFFX.TIFFMapper.prototype = {
 
                 lon += deltaLon;
             }
-            console.log( i.toFixed(0) + ": " + coords);
+            //console.log( i.toFixed(0) + ": " + coords);
 
             lat -= deltaLat;
         }
