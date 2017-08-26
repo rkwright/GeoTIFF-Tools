@@ -31,13 +31,14 @@ TIFFX.TIFFMapper.prototype = {
         var image = this.reader.image;
         var height = image.getHeight();
         var width = image.getWidth();
-        var deltaLat = 180.0 / height;
-        var deltaLon = 360.0 / width;
+        var deltaLat = 180.0 / (height-1);
+        var deltaLon = 360.0 / (width-1);
         var x,y,z;
         var rasterData;
         var CUBE_SIZE = 0.01;
         var boxMaterial = new THREE.MeshLambertMaterial({ color: 0xffffff });
         var boxMesh;
+        var SCALE_FACTOR = 2;
 
         var lat = 90;
         for (var i = 0; i < height; i++) {
@@ -52,9 +53,9 @@ TIFFX.TIFFMapper.prototype = {
 
                 rLat = lat * Math.PI / 180.0;
                 rLon = lon * Math.PI / 180.0;
-                y = Math.sin(-rLat);
-                z = Math.cos(rLat) * Math.sin(-rLon);
-                x = Math.cos(rLat) * Math.cos(-rLon);
+                y = Math.sin(-rLat) * SCALE_FACTOR;
+                z = Math.cos(rLat) * Math.sin(-rLon) * SCALE_FACTOR;
+                x = Math.cos(rLat) * Math.cos(-rLon) * SCALE_FACTOR;
 
                 coords += x.toFixed(2) + "," + y.toFixed(2) + "," + z.toFixed(2) + "  ";
 
