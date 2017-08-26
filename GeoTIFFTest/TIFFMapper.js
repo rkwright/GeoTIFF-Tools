@@ -44,6 +44,7 @@ TIFFX.TIFFMapper.prototype = {
             var rasterWindow = [0, i, width - 1, i + 1];    // left, top, right, bottom
             rasterData = image.readRasters({window: rasterWindow});
 
+
             var lon = 0;
             var coords = "";
             var rLat, rLon;
@@ -51,9 +52,9 @@ TIFFX.TIFFMapper.prototype = {
 
                 rLat = lat * Math.PI / 180.0;
                 rLon = lon * Math.PI / 180.0;
-                z = Math.sin(-rLat);
-                x = Math.cos(rLat) * Math.sin(-rLon);
-                y = Math.cos(rLat) * Math.cos(-rLon);
+                y = Math.sin(-rLat);
+                z = Math.cos(rLat) * Math.sin(-rLon);
+                x = Math.cos(rLat) * Math.cos(-rLon);
 
                 coords += x.toFixed(2) + "," + y.toFixed(2) + "," + z.toFixed(2) + "  ";
 
@@ -68,5 +69,12 @@ TIFFX.TIFFMapper.prototype = {
 
             lat -= deltaLat;
         }
+
+
+        //var geometry = new THREE.SphereGeometry( 1, 1081, 541 );
+        //var material = new THREE.MeshBasicMaterial( {color: 0xffff00, wireframe:true} );
+        //var sphere = new THREE.Mesh( geometry, material );
+        //this.scene.add( sphere );
+
     }
 };
