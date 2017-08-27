@@ -2,7 +2,7 @@
 <html>
 <head>
     <!-- @author: rkwright@geofx.com -->
-    <title>GeoTIFF Test</title>
+    <title>GeoTIFF Mapper</title>
     <meta charset="UTF-8"/>
     <!-- Set the viewport size to the screen size, so it will be displayed maximized, but unscaled. -->
     <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1"/>
@@ -25,10 +25,14 @@
 
         // allocate the Scene object, request orbitControls, some of 3D axes 10 units high and the stats
         var gfxScene = new GFX.Scene( {
-            cameraPos : [3, 3, 3],
+            cameraPos : [8, 0, 8],
             axesHeight:10,
             controls:true,
+            defaultLights:false,
             displayStats:true});
+
+        gfxScene.addLight( 'ambient', { color:0xffffff, intensity : 0.75 });
+        gfxScene.addLight( 'directional', { color:0xffffff, intensity:0.25,  position:[30,0,0]});
 
         // then initialize our demo's stuff
         initializeDemo();
@@ -63,6 +67,9 @@
 
             // Tell the browser to call this function when page is visible
             requestAnimationFrame(animateScene);
+
+            if (tiffMapper !== undefined && tiffMapper.globeMesh !== undefined)
+               tiffMapper.globeMesh.rotation.y -= 0.005;
 
             // Map the 3D scene down to the 2D screen (render the frame)
             gfxScene.renderScene();

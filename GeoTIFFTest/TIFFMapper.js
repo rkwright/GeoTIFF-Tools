@@ -44,33 +44,37 @@ TIFFX.TIFFMapper.prototype = {
         this.createMaterial();
 
         this.globeMesh = new THREE.Mesh( this.globeGeom, this.globeMat );
+        this.globeMesh.rotation.set(Math.PI, 0, 0);
 
         this.scene.add( this.globeMesh );
     },
 
     createVertices: function( image, height, width ) {
 
+        var EARTH_DIAMETER = 12796.0;  // km
         var deltaLat = 180.0 / (height-1) * Math.PI / 180.0;
         var deltaLon = 360.0 / (width-1) * Math.PI / 180.0;
         var x,y,z;
         var rasterData;
         var SCALE_FACTOR = 2;
+        var EXAGGERATION = 50;
         //var vertArray = this.create2DArray(height);
         var max=0, min=0;
 
         var lat = 90 * Math.PI / 180.0;
-        for (var i = 0; i < height; i++) {
-            var rasterWindow = [0, i, width - 0, i + 1];    // left, top, right, bottom
+        for (var i=0; i < height; i++ ) {
+            var rasterWindow = [0, i, width - 0, i+1];    // left, top, right, bottom
             rasterData = image.readRasters({window: rasterWindow});
 
             //vertArray[i] = [];
 
             var lon = 0;
-            for ( var j=0; j<rasterData[0].length; j++ ) {
+            for ( var j=rasterData[0].length-1; j>=0; j-- ) {
 
-                y = Math.sin(-lat) * SCALE_FACTOR;
-                z = Math.cos(lat) * Math.sin(-lon) * SCALE_FACTOR;
-                x = Math.cos(lat) * Math.cos(-lon) * SCALE_FACTOR;
+                var scaleFactor = SCALE_FACTOR * (rasterData[0][j] / 1000.00 * EXAGGERATION + EARTH_DIAMETER) / EARTH_DIAMETER;
+                y = Math.sin(-lat) * scaleFactor;
+                z = Math.cos(lat) * Math.sin(-lon) * scaleFactor;
+                x = Math.cos(lat) * Math.cos(-lon) * scaleFactor;
 
                 //vertArray[i][j] = new THREE.Vector3(x,y,z);
 
@@ -119,40 +123,7 @@ TIFFX.TIFFMapper.prototype = {
     },
 
     createMaterial: function () {
-        this.globeMat = new THREE.MeshBasicMaterial( {color: 0xffff00, wireframe:true} );
-    },
-
-    computeQuadFaces: function ( i, j, offV, indexF ) {
-
-        var vC = this.plane.vertices.length;
-        var face;
-
-        for ( var n=0; n<4; n++ )
-            this.plane.vertices.push(this.terrain[i + offV[n].i][j + offV[n].j]);
-
-        face = new THREE.Face3(vC + indexF[0].a, vC + indexF[0].b, vC + indexF[0].c);
-        var ia = i + offV[indexF[0].a].i;
-        var ja = j + offV[indexF[0].a].j;
-        face.vertexColors[0] = this.getSurfColor(ia,ja);
-        var ib = i + offV[indexF[0].b].i;
-        var jb = j + offV[indexF[0].b].j;
-        face.vertexColors[1] = this.getSurfColor(ib, jb);
-        var ic = i + offV[indexF[0].c].i;
-        var jc = j + offV[indexF[0].c].j;
-        face.vertexColors[2] = this.getSurfColor(ic, jc);
-        this.plane.faces.push(face);
-
-        face = new THREE.Face3(vC + indexF[1].a, vC + indexF[1].b, vC + indexF[1].c);
-        ia = i + offV[indexF[1].a].i;
-        ja = j + offV[indexF[1].a].j;
-        face.vertexColors[0] = this.getSurfColor(ia, ja);
-        ib = i + offV[indexF[1].b].i;
-        jb = j + offV[indexF[1].b].j;
-        face.vertexColors[1] = this.getSurfColor(ib, jb);
-        ic = i + offV[indexF[1].c].i;
-        jc = j + offV[indexF[1].c].j;
-        face.vertexColors[2] = this.getSurfColor(ic, jc);
-        this.plane.faces.push(face);
+        this.globeMat = new THREE.MeshLambertMaterial( {color: 0xffffff, wireframe:false} );
     },
 
     create2DArray: function (rows) {
