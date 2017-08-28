@@ -19,12 +19,12 @@ TIFFX.TIFFMapper = function ( scene, reader ) {
     this.scene  = scene;
     this.reader = reader;
     this.globeGeom = undefined;
-    this.globeMat = undefined;
+    this.globeMat  = undefined;
+    this.globeWire = undefined;
     this.globeMesh = undefined;
 
     this.createGlobe();
 };
-
 
 TIFFX.TIFFMapper.prototype = {
 
@@ -41,10 +41,16 @@ TIFFX.TIFFMapper.prototype = {
 
         this.createFaces( height, width );
 
+        //this.globeGeom = new THREE.SphereGeometry(1.5, 3, 2);
+
         this.createMaterial();
 
+        //this.globeMesh = THREE.SceneUtils.createMultiMaterialObject(
+        //    this.globeGeom, [ this.globeMat, this.globeWire ] );
+
         this.globeMesh = new THREE.Mesh( this.globeGeom, this.globeMat );
-        this.globeMesh.rotation.set(Math.PI, 0, 0);
+
+        //this.globeMesh.rotation.set(Math.PI, 0, 0);
 
         this.scene.add( this.globeMesh );
     },
@@ -57,26 +63,29 @@ TIFFX.TIFFMapper.prototype = {
         var x,y,z;
         var rasterData;
         var SCALE_FACTOR = 2;
-        var EXAGGERATION = 50;
-        //var vertArray = this.create2DArray(height);
+        var EXAGGERATION = 100;
         var max=0, min=0;
+        var k = 0;
 
         var lat = 90 * Math.PI / 180.0;
         for (var i=0; i < height; i++ ) {
             var rasterWindow = [0, i, width - 0, i+1];    // left, top, right, bottom
             rasterData = image.readRasters({window: rasterWindow});
 
-            //vertArray[i] = [];
-
             var lon = 0;
-            for ( var j=rasterData[0].length-1; j>=0; j-- ) {
+            //for ( var j=rasterData[0].length-1; j>=0; j-- ) {
+            for ( var j=0; j<rasterData[0].length; j++ ) {
 
-                var scaleFactor = SCALE_FACTOR * (rasterData[0][j] / 1000.00 * EXAGGERATION + EARTH_DIAMETER) / EARTH_DIAMETER;
+                // instead of using the last *real* value, use the first again so it meshes
+                if ( j === 0 )
+                    k = rasterData[0].length-1;
+                else
+                    k = j;
+
+                var scaleFactor = SCALE_FACTOR * (rasterData[0][k] / 1000.00 * EXAGGERATION + EARTH_DIAMETER) / EARTH_DIAMETER;
                 y = Math.sin(-lat) * scaleFactor;
                 z = Math.cos(lat) * Math.sin(-lon) * scaleFactor;
                 x = Math.cos(lat) * Math.cos(-lon) * scaleFactor;
-
-                //vertArray[i][j] = new THREE.Vector3(x,y,z);
 
                 max = Math.max(max, rasterData[0][j]);
                 min = Math.min(min, rasterData[0][j]);
@@ -99,21 +108,33 @@ TIFFX.TIFFMapper.prototype = {
      * @param width
      */
     createFaces: function ( height, width ) {
-        var face;
-        var vertices = this.globeGeom.vertices;
 
         for (var i = 0; i < height - 1; i++ ) {
-            var row0 = width * i;
-            var row1 = width * (i + 1);
+            var i0 = width * i;
+            var i1 = width * (i + 1);
+
+            var i0v = i / height;
+            var i1v = (i+1) / height;
 
             for (var j = 0; j < width - 1; j++) {
-                var v0 = row0 + j;
-                var v1 = row0 + j+1;
-                var v2 = row1 + j+1;
-                var v3 = row1 + j;
+                var v0 = i0 + j;
+                var v1 = i0 + j+1;
+                var v2 = i1 + j+1;
+                var v3 = i1 + j;
+
+                var j0u = j /width;
+                var j1u = (j+1) / width;
+
+                var v0uv = new THREE.Vector2( j0u, i0v );
+                var v1uv = new THREE.Vector2( j1u, i0v );
+                var v2uv = new THREE.Vector2( j1u, i1v );
+                var v3uv = new THREE.Vector2( j0u, i1v );
 
                 this.globeGeom.faces.push(new THREE.Face3(v0, v1, v2));
                 this.globeGeom.faces.push(new THREE.Face3(v0, v2, v3));
+
+                this.globeGeom.faceVertexUvs[0].push([v0uv, v1uv, v2uv]);
+                this.globeGeom.faceVertexUvs[0].push([v0uv, v2uv, v3uv]);
             }
         }
 
@@ -123,16 +144,15 @@ TIFFX.TIFFMapper.prototype = {
     },
 
     createMaterial: function () {
-        this.globeMat = new THREE.MeshLambertMaterial( {color: 0xffffff, wireframe:false} );
-    },
 
-    create2DArray: function (rows) {
-        var arr = [];
-
-        for (var i=0;i<rows;i++) {
-            arr[i] = [];
-        }
-
-        return arr;
+        //this.globeMat = new THREE.MeshPhongMaterial( {color: 0xffffff, wireframe:false} );
+        this.globeWire = new THREE.MeshPhongMaterial( {color: 0xffff00, wireframe:true} );
+        var textureLoader = new THREE.TextureLoader();
+        this.globeMat = new THREE.MeshPhongMaterial({ color: '#ffffff' });
+        var pThis = this;
+        textureLoader.load( "../data/8081-earthmap4k.jpg", function( texture ) {
+            pThis.globeMat.map = texture;
+            pThis.globeMat.needsUpdate = true;
+        } );
     }
 };
