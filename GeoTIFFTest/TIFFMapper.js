@@ -5,8 +5,6 @@
  *
  */
 
-
-
 /**
  * Constructor for the TIFFMapper "class"
  *
@@ -29,7 +27,6 @@ TIFFX.TIFFMapper = function ( scene, reader ) {
 TIFFX.TIFFMapper.prototype = {
 
     createGlobe: function () {
-        console.log("TIFFMapper:createMesh");
 
         var image = this.reader.image;
         var height = image.getHeight();
@@ -41,55 +38,21 @@ TIFFX.TIFFMapper.prototype = {
 
         this.createFaces( height, width );
 
-        //this.globeGeom = new THREE.SphereGeometry(2, 32, 32);
-
         this.createMaterial();
 
         this.globeMesh = new THREE.Mesh( this.globeGeom, this.globeMat );
 
-        //this.globeMesh.rotation.set(Math.PI, 0, 0);
-
         this.scene.add( this.globeMesh );
     },
 
-    testLatLon: function() {
-
-        var lat,lon;
-        var latD,lonD;
-        for ( var j=0; j<3; j++ ) {
-            lat = -Math.PI/2 + j * Math.PI/2;
-            for (var i = 0; i < 9; i++) {
-                lon = Math.PI / 4 * i;
-                var vec = this.calcXYZFromLatLon( lat, lon, 2 );
-
-                latD = lat * 180/Math.PI;
-                lonD = lon * 180/Math.PI;
-                console.log("lat: " + latD.toFixed(1) + " lon: " + lonD.toFixed(1) +
-                    " coords: " + vec[0].toFixed(2) + ", " +vec[1].toFixed(2) + ", " +vec[2].toFixed(2));
-            }
-        }
-    },
-
-    calcXYZFromLatLon: function ( lat, lon, radius ) {
-        var phi   = Math.PI/2 - lat;
-        var theta = lon + Math.PI;
-
-        x = -(radius * Math.sin(phi) * Math.cos(theta));
-        z = (radius * Math.sin(phi) * Math.sin(theta));
-        y = (radius * Math.cos(phi));
-
-        return [x,y,z];
-    },
-
-    addBox: function (x,y,z) {
-        var geometry = new THREE.BoxGeometry( 0.05, 0.05, 0.05 );
-        var material = new THREE.MeshBasicMaterial( {color: 0xffff00} );
-        var cube = new THREE.Mesh( geometry, material );
-        cube.position.set(x,y,z);
-
-        this.scene.add( cube );
-
-    },
+    /**
+     * Create all the vertices by reading the TIFF row by by row, transforming to
+     * Cartesian (xyz) coords and then creating the Vertex3 and pushing it to the geom
+     *
+     * @param image
+     * @param height
+     * @param width
+     */
     createVertices: function( image, height, width ) {
 
         var EARTH_DIAMETER = 12796.0;  // km
@@ -101,8 +64,6 @@ TIFFX.TIFFMapper.prototype = {
         var EXAGGERATION = 100;
         var max=0, min=0;
         var k = 0;
-
-       // this.testLatLon();
 
         var lat = 90 * Math.PI / 180.0;
         var vec;
@@ -119,25 +80,17 @@ TIFFX.TIFFMapper.prototype = {
                 else
                     k = j;
 
-                var radius = SCALE_FACTOR * (rasterData[0][k] / 1000.00 * EXAGGERATION + EARTH_DIAMETER) / EARTH_DIAMETER;
+                var radius = SCALE_FACTOR *
+                    (rasterData[0][k] / 1000.0 * EXAGGERATION + EARTH_DIAMETER) / EARTH_DIAMETER;
 
-                // from https://stackoverflow.com/questions/28365948/javascript-latitude-longitude-to-xyz-position-on-earth-threejs
-
+                // this trasform from https://stackoverflow.com/questions/28365948/javascript-\
+                // latitude-longitude-to-xyz-position-on-earth-threejs
                 var phi   = Math.PI/2 - lat;
                 var theta = Math.PI + lon;
 
                 x = -(radius * Math.sin(phi) * Math.cos(theta));
                 z = (radius * Math.sin(phi) * Math.sin(theta));
                 y = (radius * Math.cos(phi));
-
-                if (j === 0) {
-                    latD = lat * 180 / Math.PI;
-                    lonD = lon * 180 / Math.PI;
-                    console.log(" lat: " + latD.toFixed(1) + " lon: " + lonD.toFixed(1) +
-                        " coords: " + x.toFixed(2) + ", " + y.toFixed(2) + ", " + z.toFixed(2));
-                }
-
-                //this.addBox( x, y, z);
 
                 this.globeGeom.vertices.push(new THREE.Vector3(x, y, z));
 
@@ -150,7 +103,7 @@ TIFFX.TIFFMapper.prototype = {
             lat -= deltaLat;
         }
 
-        console.log("max: " + max.toFixed(1) + "  min: " + min.toFixed(1));
+        //console.log("max: " + max.toFixed(1) + "  min: " + min.toFixed(1));
     },
 
     /**
@@ -165,6 +118,7 @@ TIFFX.TIFFMapper.prototype = {
             var i0 = width * i;
             var i1 = width * (i + 1);
 
+            // note that they y-coord (i.e. the 'v' of uv) must start at 1 and descend
             var i0v = 1 - i / height;
             var i1v = 1 - (i+1) / height;
 
@@ -174,6 +128,7 @@ TIFFX.TIFFMapper.prototype = {
                 var v2 = i1 + j+1;
                 var v3 = i1 + j;
 
+                // note that the faces MUST be in CCW winding order!
                 this.globeGeom.faces.push(new THREE.Face3(v0, v2, v1));
                 this.globeGeom.faces.push(new THREE.Face3(v0, v3, v2));
 
@@ -195,18 +150,17 @@ TIFFX.TIFFMapper.prototype = {
 
     },
 
+    /**
+     * Load the specified image and set it as the texture for the current map
+     */
     createMaterial: function () {
 
-        if (false) {
-            this.globeMat = new THREE.MeshPhongMaterial({color: 0xffffff, wireframe: false});
-        } else {
-            var textureLoader = new THREE.TextureLoader();
-            this.globeMat = new THREE.MeshPhongMaterial({color: '#ffffff'});
-            var pThis = this;
-            textureLoader.load("../data/8081-earthmap4k.jpg", function (texture) {
-                pThis.globeMat.map = texture;
-                pThis.globeMat.needsUpdate = true;
-            });
-        }
+        var textureLoader = new THREE.TextureLoader();
+        this.globeMat = new THREE.MeshPhongMaterial({color: '#ffffff'});
+        var pThis = this;
+        textureLoader.load("../data/8081-earthmap8k.jpg", function (texture) {
+            pThis.globeMat.map = texture;
+            pThis.globeMat.needsUpdate = true;
+        });
     }
 };

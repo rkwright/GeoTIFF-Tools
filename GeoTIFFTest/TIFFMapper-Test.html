@@ -25,8 +25,8 @@
 
         // allocate the Scene object, request orbitControls, some of 3D axes 10 units high and the stats
         var gfxScene = new GFX.Scene( {
-            cameraPos : [8, 0, 8],
-            axesHeight:10,
+            cameraPos : [4, 3, 4],
+            //axesHeight:10,
             controls:true,
             defaultLights:false,
             displayStats:true});
@@ -46,7 +46,7 @@
 
         function initializeDemo() {
 
-            tiffReader = new TIFFX.TIFFReader("../data/ETOPO_20.tif", tiffReady);
+            tiffReader = new TIFFX.TIFFReader("../data/ETOPO_15.tif", tiffReady);
         }
 
             /**
