@@ -46,7 +46,7 @@
 
         function initializeDemo() {
 
-            tiffReader = new TIFFX.TIFFReader("../data/ETOPO_15.tif", tiffReady);
+            tiffReader = new TIFFX.TIFFReader("../data/ETOPO_20.tif", tiffReady);
         }
 
             /**
@@ -69,7 +69,7 @@
             requestAnimationFrame(animateScene);
 
             if (tiffMapper !== undefined && tiffMapper.globeMesh !== undefined)
-                tiffMapper.globeMesh.rotation.y += 0.005;
+                tiffMapper.globeMesh.rotation.y += 0.0025;
 
             // Map the 3D scene down to the 2D screen (render the frame)
             gfxScene.renderScene();
