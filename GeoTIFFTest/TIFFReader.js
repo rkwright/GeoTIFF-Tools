@@ -105,6 +105,7 @@ TIFFX.TIFFReader.prototype = {
 
         geoTable += "</table>";
 
+        console.log(geoTable);
         div.innerHTML = geoTable;
 
         // weird hack.  See https://stackoverflow.com/questions/27503696/\

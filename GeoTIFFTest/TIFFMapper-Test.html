@@ -17,7 +17,7 @@
     <script src="TIFFMapper.js"></script>
 </head>
 <body style="margin:0;padding:0;border:0">
-    <div id="geoTable"></div>
+    <!-- div id="geoTable" style="display:none"></div -->
 
     <script type="text/javascript">
         var  tiffReader = undefined;
@@ -49,7 +49,7 @@
             tiffReader = new TIFFX.TIFFReader("../data/ETOPO_15.tif", tiffReady);
         }
 
-            /**
+        /**
          * Called when the TIFF is loaded and ready to be used
          */
         function tiffReady() {
@@ -69,7 +69,7 @@
             requestAnimationFrame(animateScene);
 
             if (tiffMapper !== undefined && tiffMapper.globeMesh !== undefined)
-                tiffMapper.globeMesh.rotation.y += 0.0025;
+                tiffMapper.globeMesh.rotation.y += 0.001;
 
             // Map the 3D scene down to the 2D screen (render the frame)
             gfxScene.renderScene();

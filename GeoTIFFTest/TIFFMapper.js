@@ -35,14 +35,18 @@ TIFFX.TIFFMapper.prototype = {
         this.globeGeom = new THREE.Geometry();
 
         this.createVertices( image, height, width );
+        console.log("Created vertices");
 
         this.createFaces( height, width );
+        console.log("Created faces");
 
         this.createMaterial();
+        console.log("Created material");
 
         this.globeMesh = new THREE.Mesh( this.globeGeom, this.globeMat );
 
         this.scene.add( this.globeMesh );
+        console.log("Created mesh");
     },
 
     /**
@@ -61,7 +65,7 @@ TIFFX.TIFFMapper.prototype = {
         var x,y,z;
         var rasterData;
         var SCALE_FACTOR = 2;
-        var EXAGGERATION = 100;
+        var EXAGGERATION = 1;
         var max=0, min=0;
         var k = 0;
 
